@@ -1082,4 +1082,33 @@ mod tests {
         let covariant = CovariantPeek::new(peek);
         assert!(covariant.is_some());
     }
+
+    #[test]
+    #[cfg(feature = "alloc")]
+    #[cfg(feature = "fn-ptr")]
+    fn test_covariant_peek_invariant_fn() {
+        fn f<'a>(x: &'a ()) -> &'a () {
+            x
+        }
+        let fn_ptr = f as fn(&'static ()) -> &'static ();
+        let peek = Peek::new(&fn_ptr);
+        let covariant = CovariantPeek::new(peek);
+        assert!(covariant.is_none());
+    }
+
+    #[test]
+    #[cfg(feature = "alloc")]
+    fn test_covariant_peek_invariant() {
+        #[derive(Debug, facet::Facet)]
+        struct InvariantLifetime<'a> {
+            f: fn(&'a ()) -> &'a (),
+        }
+        fn f<'a>(x: &'a ()) -> &'a () {
+            x
+        }
+        let invariant = InvariantLifetime { f };
+        let peek = Peek::new(&invariant);
+        let covariant = CovariantPeek::new(peek);
+        assert!(covariant.is_none());
+    }
 }
